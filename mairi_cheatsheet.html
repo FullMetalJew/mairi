@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mairi — Consular 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Esoteric Force — the space between light and dark. Deep void, bleeding crimson into indigo */
+    --bg-page:    #080610;
+    --bg-card:    #0d0b18;
+    --bg-raise:   #131028;
+    --bg-hover:   #1a1638;
+    --border:     rgba(180,140,255,0.08);
+    --border-md:  rgba(180,140,255,0.15);
+    --text-primary:   #e0d8f0;
+    --text-secondary: #8878a8;
+    --text-muted:     #3a3060;
+
+    /* Indigo — light side Force, healing, protection */
+    --blue-bg:    #0c0820; --blue-text:  #a090f8; --blue-border: #3028a0;
+    /* Crimson — dark side, damage, tendrils */
+    --red-bg:     #180610; --red-text:   #e06080; --red-border:  #700830;
+    /* Deep violet — universal Force, primary accent */
+    --purple-bg:  #100820; --purple-text:#d0a8ff; --purple-border:#5030c0;
+    /* Pale emerald — healing glow */
+    --green-bg:   #060e18; --green-text: #70d8c0; --green-border: #0c4848;
+    /* Amber — warnings, resources */
+    --amber-bg:   #140c00; --amber-text: #e8c060; --amber-border: #503800;
+    /* Ethereal teal — species/passive */
+    --teal-bg:    #060c18; --teal-text:  #80c8e8; --teal-border:  #0c3860;
+
+    --accent:     #9878f8;
+    --accent-red: #c04868;
+
+    --radius-sm:  6px; --radius-md:  10px; --radius-lg:  14px;
+    --font: 'Inter', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --shadow-card: 0 2px 12px rgba(100,60,200,0.12), 0 1px 3px rgba(0,0,0,0.5);
+    --shadow-lift: 0 6px 28px rgba(100,60,200,0.18), 0 2px 8px rgba(0,0,0,0.6);
+  }
+
+  /* Light mode — parchment and candlelight, ancient texts */
+  body.light {
+    --bg-page:    #f0edf8;
+    --bg-card:    #faf8ff;
+    --bg-raise:   #ede8f8;
+    --bg-hover:   #e4ddf0;
+    --border:     rgba(80,40,120,0.10);
+    --border-md:  rgba(80,40,120,0.18);
+    --text-primary:   #0e0820;
+    --text-secondary: #4a3870;
+    --text-muted:     #9888c0;
+    --blue-bg:    #e8e4ff; --blue-text:  #2818a0; --blue-border: #a898e8;
+    --red-bg:     #fce8f0; --red-text:   #880830; --red-border:  #e898b8;
+    --purple-bg:  #f0e8ff; --purple-text:#4820a8; --purple-border:#c098f0;
+    --green-bg:   #e0f8f4; --green-text: #084840; --green-border: #80d8c8;
+    --amber-bg:   #fdf4e0; --amber-text: #704000; --amber-border: #e8c070;
+    --teal-bg:    #e0f0f8; --teal-text:  #084860; --teal-border:  #80c0d8;
+    --accent:     #5030c0;
+    --accent-red: #880830;
+    --shadow-card: 0 1px 4px rgba(80,40,120,0.10);
+    --shadow-lift: 0 4px 16px rgba(80,40,120,0.14);
+  }
+
+  /* Toggle */
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 100;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-card); border: 1px solid var(--border-md);
+    border-radius: 99px; padding: 6px 12px 6px 8px;
+    box-shadow: var(--shadow-lift); cursor: pointer;
+    transition: background 0.2s; user-select: none;
+  }
+  .theme-toggle:hover { background: var(--bg-raise); }
+  .toggle-icon { font-size: 14px; line-height: 1; }
+  .toggle-track { width: 32px; height: 18px; border-radius: 99px; background: var(--border-md); position: relative; transition: background 0.25s; flex-shrink: 0; }
+  body:not(.light) .toggle-track { background: var(--accent); }
+  .toggle-thumb { width: 14px; height: 14px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  body:not(.light) .toggle-thumb { transform: translateX(14px); }
+  .toggle-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); font-family: var(--font); }
+
+  body {
+    font-family: var(--font); background: var(--bg-page); color: var(--text-primary);
+    font-size: 14px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+    min-height: 100vh; padding: 2rem 1rem 4rem; transition: background 0.25s, color 0.25s;
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(120,60,220,0.12) 0%, transparent 45%),
+      radial-gradient(ellipse at 90% 70%, rgba(160,20,80,0.10) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 50%, rgba(60,20,120,0.08) 0%, transparent 60%);
+  }
+  body.light {
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(100,50,200,0.07) 0%, transparent 45%),
+      radial-gradient(ellipse at 90% 70%, rgba(140,20,70,0.05) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 50%, rgba(60,20,120,0.04) 0%, transparent 60%);
+  }
+
+  .page { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+  .card { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-card); overflow: hidden; }
+
+  .card-header { padding: 9px 16px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-muted); background: var(--bg-raise); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .card-header-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.6; flex-shrink: 0; }
+  .card-header-dot-red { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-red); opacity: 0.6; flex-shrink: 0; }
+
+  /* HEADER */
+  .header-card {
+    background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border);
+    box-shadow: var(--shadow-lift); padding: 20px 24px;
+    display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center;
+    position: relative; overflow: hidden;
+  }
+  .header-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(120,60,220,0.10) 0%, transparent 40%, rgba(160,20,80,0.07) 100%);
+    pointer-events: none;
+  }
+  .avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--purple-bg); border: 2px solid var(--purple-border); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; color: var(--purple-text); flex-shrink: 0; letter-spacing: 0.03em; }
+  .header-name { font-size: 22px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; margin-bottom: 3px; }
+  .header-sub { font-size: 12.5px; color: var(--text-secondary); font-weight: 400; }
+  .header-badges { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+
+  /* PILLS */
+  .pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 500; border: 1px solid; white-space: nowrap; }
+  .pill-blue   { background: var(--blue-bg);   color: var(--blue-text);   border-color: var(--blue-border); }
+  .pill-red    { background: var(--red-bg);    color: var(--red-text);    border-color: var(--red-border); }
+  .pill-purple { background: var(--purple-bg); color: var(--purple-text); border-color: var(--purple-border); }
+  .pill-green  { background: var(--green-bg);  color: var(--green-text);  border-color: var(--green-border); }
+  .pill-amber  { background: var(--amber-bg);  color: var(--amber-text);  border-color: var(--amber-border); }
+  .pill-teal   { background: var(--teal-bg);   color: var(--teal-text);   border-color: var(--teal-border); }
+
+  /* HTP */
+  .htp-body { padding: 18px 20px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.75; display: flex; flex-direction: column; gap: 12px; }
+  .htp-body strong { color: var(--text-primary); font-weight: 600; }
+  .htp-protocol { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.03em; background: var(--bg-raise); border-radius: var(--radius-md); padding: 12px 14px; line-height: 1.8; border: 1px solid var(--border); }
+  .htp-protocol-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; opacity: 0.8; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
+  .stat-cell { background: var(--bg-card); padding: 13px 16px; display: flex; flex-direction: column; gap: 2px; }
+  .stat-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .stat-value { font-size: 20px; font-weight: 600; color: var(--text-primary); font-family: var(--mono); letter-spacing: -0.02em; }
+  .stat-cell.blue .stat-value  { color: var(--blue-text); }
+  .stat-cell.red .stat-value   { color: var(--red-text); }
+  .stat-cell.purple .stat-value { color: var(--purple-text); }
+
+  /* WEAPONS */
+  .weapon-entry { padding: 13px 18px; border-bottom: 1px solid var(--border); }
+  .weapon-entry:last-child { border-bottom: none; }
+  .weapon-name-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+  .weapon-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .weapon-tag { font-size: 10px; font-weight: 500; color: var(--blue-text); background: var(--blue-bg); border: 1px solid var(--blue-border); padding: 1px 7px; border-radius: 99px; }
+  .weapon-stats { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); }
+
+  /* ACTION ECONOMY */
+  .ae-grid { display: grid; grid-template-columns: 90px 1fr; }
+  .ae-row { display: contents; }
+  .ae-row > * { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  .ae-row:last-child > * { border-bottom: none; }
+  .ae-type { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); background: var(--bg-raise); display: flex; align-items: center; border-right: 1px solid var(--border); }
+  .ae-content { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .ae-content strong { color: var(--text-primary); font-weight: 500; }
+
+  /* FEATURES */
+  .fe-card { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .fe-card:last-child { border-bottom: none; }
+  .fe-top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; flex-wrap: wrap; }
+  .fe-timing { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
+  .fe-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .fe-cost { font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px; font-family: var(--mono); }
+  .fe-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 7px; }
+  .fe-when { font-size: 12px; color: var(--text-muted); background: var(--bg-raise); border-radius: var(--radius-sm); padding: 6px 10px; border-left: 3px solid var(--accent); opacity: 0.9; }
+  .fe-when-red { font-size: 12px; color: var(--text-muted); background: var(--bg-raise); border-radius: var(--radius-sm); padding: 6px 10px; border-left: 3px solid var(--accent-red); opacity: 0.9; }
+
+  /* POWERS GRID */
+  .powers-section { padding: 4px 0; }
+  .power-row { display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 8px; align-items: center; padding: 9px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .power-row:last-child { border-bottom: none; }
+  .power-row:hover { background: var(--bg-hover); }
+  .power-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .power-sub  { font-size: 10px; color: var(--text-muted); font-family: var(--mono); margin-top: 1px; }
+  .power-tag  { font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid; white-space: nowrap; }
+  .pt-blue   { background: var(--blue-bg);   color: var(--blue-text);   border-color: var(--blue-border); }
+  .pt-red    { background: var(--red-bg);    color: var(--red-text);    border-color: var(--red-border); }
+  .pt-purple { background: var(--purple-bg); color: var(--purple-text); border-color: var(--purple-border); }
+  .pt-green  { background: var(--green-bg);  color: var(--green-text);  border-color: var(--green-border); }
+  .pt-amber  { background: var(--amber-bg);  color: var(--amber-text);  border-color: var(--amber-border); }
+  .power-note { font-size: 11px; color: var(--text-muted); font-style: italic; padding: 0 16px 8px; }
+
+  /* COMBOS */
+  .combo-block { padding: 13px 18px; border-bottom: 1px solid var(--border); }
+  .combo-block:last-of-type { border-bottom: none; }
+  .combo-title { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.06em; margin-bottom: 8px; }
+  .combo-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .combo-step { font-size: 12.5px; background: var(--bg-raise); border: 1px solid var(--border-md); padding: 4px 10px; border-radius: var(--radius-sm); color: var(--text-primary); }
+  .combo-arrow { color: var(--text-muted); font-size: 12px; }
+
+  .fp-note { font-family: var(--mono); font-size: 11px; color: var(--text-muted); padding: 10px 18px; background: var(--bg-raise); border-top: 1px solid var(--border); letter-spacing: 0.03em; line-height: 1.7; }
+
+  @media (max-width: 600px) {
+    .header-card { grid-template-columns: auto 1fr; }
+    .header-badges { display: none; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .ae-grid { grid-template-columns: 70px 1fr; }
+    .power-row { grid-template-columns: 1fr auto auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="theme-toggle" id="themeToggle">
+  <span class="toggle-icon" id="toggleIcon">🌌</span>
+  <div class="toggle-track"><div class="toggle-thumb"></div></div>
+  <span class="toggle-label" id="toggleLabel">Dark</span>
+</div>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header-card">
+    <div class="avatar">M</div>
+    <div>
+      <div class="header-name">Mairi</div>
+      <div class="header-sub">Miraluka · Consular 3 · Way of the Sage · Force Adept</div>
+    </div>
+    <div class="header-badges">
+      <span class="pill pill-blue">Healer</span>
+      <span class="pill pill-red">Dark Side</span>
+      <span class="pill pill-purple">Force Caster</span>
+    </div>
+  </div>
+
+  <!-- HOW TO PLAY -->
+  <div class="card">
+    <div class="card-header"><span class="card-header-dot"></span>How to play Mairi — the simple version</div>
+    <div class="htp-body">
+      <p>Mairi is a <strong>Force-casting support and battlefield controller</strong>. As a Way of the Sage Consular, her primary role is keeping allies alive with her boosted healing, while threatening enemies with utility powers and dark-side damage. She has more combat presence than a typical healer — <strong>Force Imbuement turns her Lightblade into a WIS-based weapon for free</strong>, making her a real threat in melee when the Force Points need conserving.</p>
+      <p>Every fight starts with a resource check: <strong>Force Points (8/16 max)</strong> are everything. Healing costs FP. Damage costs FP. <strong>Force Shield</strong> (reaction, 2/LR) is her main defense. <strong>Force Recovery</strong> (1/LR) gets FP back mid-fight. Her <strong>Disciple of Life</strong> passive makes every heal punch well above its cost — a 1st level Heal restores 1d8+7 total. She's a <strong>Miraluka</strong> — blindsight 30ft, can't be blinded.</p>
+      <p><strong>Force Imbuement is free — use it every fight.</strong> Bonus action, no FP, lasts a minute. Her Lightblade becomes a +6 attack, 1d8+4 damage WIS weapon. On turns where she isn't casting a leveled power, attacking with an imbued blade or throwing it via Saber Throw costs nothing. The key tension is her <strong>bonus action</strong> — Imbuement, Force Leap, and Force Whisper all compete for it. Imbue on the first turn before combat gets complicated, then it's free for the rest of the fight.</p>
+      <div class="htp-protocol">
+        <div class="htp-protocol-label">// Combat Protocol</div>
+        Turn 1: Bonus action — <strong>Force Imbuement</strong> (free, lasts 1 min). Then Action: Force Push/Pull or attack. Stay 30-60ft back when casting. Use <strong>Heal</strong> reactively — don't cast it before an ally needs it. When FP are low: attack with the imbued blade or Saber Throw instead of spending FP. Use <strong>Pyrokinesis</strong> into clusters with Careful Power to protect allies (+1 FP). Use <strong>Dark Side Tendrils</strong> for area control and restrain. Use <strong>Saber Reflect</strong> (reaction) when hit by ranged attacks. Save <strong>Force Shield</strong> for a hit that would drop you. Use <strong>Force Leap</strong> (BA) to reposition — but remember it burns your bonus action, so you can't Imbue that turn. Use <strong>Seeking Power</strong> (+1 FP) when you can't afford to miss.
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY STATS -->
+  <div class="card">
+    <div class="card-header"><span class="card-header-dot"></span>Key Stats</div>
+    <div class="stats-grid">
+      <div class="stat-cell blue"><div class="stat-label">Force Points</div><div class="stat-value">16 max</div></div>
+      <div class="stat-cell blue"><div class="stat-label">Force Atk</div><div class="stat-value">+6</div></div>
+      <div class="stat-cell blue"><div class="stat-label">Force Save DC</div><div class="stat-value">14</div></div>
+      <div class="stat-cell purple"><div class="stat-label">Hit Points</div><div class="stat-value">21 max</div></div>
+      <div class="stat-cell purple"><div class="stat-label">Armor Class</div><div class="stat-value">12</div></div>
+      <div class="stat-cell purple"><div class="stat-label">Initiative</div><div class="stat-value">+2</div></div>
+      <div class="stat-cell"><div class="stat-label">Speed</div><div class="stat-value">30 ft</div></div>
+      <div class="stat-cell"><div class="stat-label">Proficiency</div><div class="stat-value">+2</div></div>
+      <div class="stat-cell"><div class="stat-label">Hit Dice</div><div class="stat-value">3d6</div></div>
+      <div class="stat-cell"><div class="stat-label">WIS Mod</div><div class="stat-value">+4</div></div>
+      <div class="stat-cell"><div class="stat-label">WIS Save</div><div class="stat-value">+6 ✦</div></div>
+      <div class="stat-cell"><div class="stat-label">CHA Save</div><div class="stat-value">+4 ✦</div></div>
+    </div>
+  </div>
+
+  <!-- WEAPON -->
+  <div class="card">
+    <div class="card-header"><span class="card-header-dot"></span>Weapon</div>
+    <div class="weapon-entry">
+      <div class="weapon-name-row">
+        <span class="weapon-name">Lightblade</span>
+        <span class="weapon-tag">LAST RESORT</span>
+      </div>
+      <div class="weapon-stats">Attack +4 · 1d8+2 energy · Melee 5ft · Simple Lightweapon · Action</div>
+    </div>
+  </div>
+
+  <!-- ACTION ECONOMY -->
+  <div class="card">
+    <div class="card-header"><span class="card-header-dot"></span>Action Economy</div>
+    <div class="ae-grid">
+      <div class="ae-row">
+        <div class="ae-type">Action</div>
+        <div class="ae-content">Cast force power · Attack · Dash · <strong>Force Disarm</strong> · <strong>Force Push/Pull</strong> · <strong>Pyrokinesis</strong> · <strong>Heal</strong> · <strong>Dark Side Tendrils</strong> · <strong>Stun Droid</strong> · <strong>Spare the Dying</strong></div>
+      </div>
+      <div class="ae-row">
+        <div class="ae-type">Bonus</div>
+        <div class="ae-content"><strong>Force Imbuement</strong> · <strong>Force Leap</strong> · <strong>Force Whisper</strong> (120ft silent message)</div>
+      </div>
+      <div class="ae-row">
+        <div class="ae-type">Reaction</div>
+        <div class="ae-content"><strong>Force Shield</strong> (absorb hit, 2/LR) · <strong>Saber Reflect</strong> (reflect ranged atk, +6)</div>
+      </div>
+      <div class="ae-row">
+        <div class="ae-type">Special</div>
+        <div class="ae-content"><strong>Force Recovery</strong> (regain FP, 1/LR) · <strong>Seeking Power</strong> (reroll miss, costs FP) · <strong>Careful Power</strong> (protect allies from AoE, costs FP)</div>
+      </div>
+      <div class="ae-row">
+        <div class="ae-type">Free</div>
+        <div class="ae-content">Speak · Drop item · <strong>Force Sight</strong> — blindsight 30ft, always active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY FEATURES -->
+  <div class="card">
+    <div class="card-header"><span class="card-header-dot"></span>Key Class Features</div>
+
+    <div class="fe-card">
+      <div class="fe-top">
+        <span class="fe-timing">Reaction</span>
+        <span class="fe-name">Force Shield</span>
+        <span class="pill pill-blue">2 / Long Rest</span>
+      </div>
+      <div class="fe-cost">When you are hit by an attack — use your reaction to shield yourself</div>
+      <div class="fe-desc">When a creature hits you with an attack, you can use your reaction to add your proficiency bonus (+2) to your AC for that attack, potentially turning a hit into a miss. Can be used after seeing the roll.</div>
+      <div class="fe-when">Use when a hit would drop you low or knock you out. You can see the roll first — only use it if it will actually flip the hit to a miss.</div>
+    </div>
+
+    <div class="fe-card">
+      <div class="fe-top">
+        <span class="fe-timing">Special</span>
+        <span class="fe-name">Force Recovery</span>
+        <span class="pill pill-purple">1 / Long Rest</span>
+      </div>
+      <div class="fe-cost">Regain Force Points equal to half your Consular level (minimum 1) as a special action</div>
+      <div class="fe-desc">Once per long rest, Mairi can recover Force Points mid-fight. At level 3 this recovers up to 1-2 FP back — small but potentially crucial.</div>
+      <div class="fe-when">Use at 3-4 FP remaining, before spending down to zero. Never waste it when FP are full.</div>
+    </div>
+
+    <div class="fe-card">
+      <div class="fe-top">
+        <span class="fe-timing">Way of the Sage · Passive</span>
+        <span class="fe-name">Disciple of Life</span>
+        <span class="pill pill-green">Always Active</span>
+      </div>
+      <div class="fe-cost">Healing powers use WIS or CHA · +2 + power level extra HP on every heal</div>
+      <div class="fe-desc">Whenever Mairi casts a force power of 1st level or higher that restores HP, the target regains <strong>extra HP equal to 2 + the power's level</strong>. A 1st level Heal already restores 1d8+4 — Disciple of Life adds +3 on top of that. Her healing is meaningfully stronger than baseline.</div>
+      <div class="fe-when">Always active — just cast Heal and the bonus applies automatically. Prioritize spending 1st level FP on Heal when an ally is in trouble; the bonus makes it very efficient.</div>
+    </div>
+
+    <div class="fe-card">
+      <div class="fe-top">
+        <span class="fe-timing">Force-Empowered Casting · Costs FP</span>
+        <span class="fe-name">Careful Power</span>
+        <span class="pill pill-blue">Spend FP when casting</span>
+      </div>
+      <div class="fe-cost">Spend 1 FP when casting a power — choose a number of creatures up to WIS modifier to auto-succeed their saving throw</div>
+      <div class="fe-desc">When casting an area power like <strong>Pyrokinesis</strong> or <strong>Dark Side Tendrils</strong>, spend 1 FP to protect up to 4 friendly creatures — they automatically succeed their saving throw and take no damage.</div>
+      <div class="fe-when">Use when casting AoE powers near allies. Pyrokinesis in a group? Spend 1 FP and allies are safe.</div>
+    </div>
+
+    <div class="fe-card">
+      <div class="fe-top">
+        <span class="fe-timing">Force-Empowered Casting · Costs FP</span>
+        <span class="fe-name">Seeking Power</span>
+        <span class="pill pill-red">Spend FP after missing</span>
+      </div>
+      <div class="fe-cost">After missing with a force attack or a target succeeds a save — spend 1 FP to reroll and take the higher result</div>
+      <div class="fe-desc">Can be used even if another Force-Empowered Casting was already used this cast. A safety net for when Saber Throw or Force Disarm misses on a critical moment.</div>
+      <div class="fe-when">Use when missing would waste a significant FP investment — especially on Saber Throw or a leveled power cast against a key target.</div>
+    </div>
+
+    <div class="fe-card">
+      <div class="fe-top">
+        <span class="fe-timing">Miraluka · Passive</span>
+        <span class="fe-name">Force Sight</span>
+        <span class="pill pill-teal">Always Active</span>
+      </div>
+      <div class="fe-cost">Blindsight to 30ft — perceive the world through the Force, not eyes</div>
+      <div class="fe-desc">Mairi perceives everything within 30ft through the Force regardless of light conditions. She cannot be blinded within this range. Beyond 30ft she uses normal (Force-enhanced) senses. Invisible creatures within 30ft are still detected.</div>
+      <div class="fe-when">Always active — remind the GM when enemies try to blind you or fight in darkness. Within 30ft you always see them.</div>
+    </div>
+
+    <div class="fe-card">
+      <div class="fe-top">
+        <span class="fe-timing">Background · Action</span>
+        <span class="fe-name">Empathic</span>
+        <span class="pill pill-teal">Passive</span>
+      </div>
+      <div class="fe-cost">Sense emotional state of nearby creatures through the Force</div>
+      <div class="fe-desc">Mairi can read the surface emotions and intentions of nearby creatures. Useful for detecting deception, ambushes, or hidden hostility — especially combined with her high Insight (+6) and Animal Handling (+4).</div>
+      <div class="fe-when">Use in social encounters and before entering unknown situations. Tell the GM you're reading the room.</div>
+    </div>
+
+  </div>
+
+  <!-- FORCE POWERS -->
+  <div class="card">
+    <div class="card-header"><span class="card-header-dot"></span>Force Powers — DC 14 · Attack +6 · WIS +4 · Refreshes on Long Rest</div>
+    <div class="powers-section">
+
+      <div class="power-row">
+        <div><div class="power-name">Force Disarm</div><div class="power-sub">Innate · Action · 30ft · STR 14</div></div>
+        <span class="power-tag pt-purple">Innate</span>
+        <span class="power-tag pt-blue">Universal</span>
+      </div>
+      <div class="power-note">Force a creature to drop a held item. STR save DC 14 — on fail, item drops. No FP cost on innate use.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Force Push / Pull</div><div class="power-sub">Innate · Action · 60ft · STR 14 · 1d4 damage</div></div>
+        <span class="power-tag pt-purple">Innate</span>
+        <span class="power-tag pt-blue">Universal</span>
+      </div>
+      <div class="power-note">Push or pull a creature up to 10ft. STR save DC 14. On fail — creature moved and takes 1d4 kinetic. Great for repositioning dangerous melee enemies away from allies.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Pyrokinesis</div><div class="power-sub">Innate · Action · 60ft · 5ft cube · DEX 14 · 1d8</div></div>
+        <span class="power-tag pt-red">Innate</span>
+        <span class="power-tag pt-red">Dark Side</span>
+      </div>
+      <div class="power-note">Create a burst of fire in a 5ft cube. DEX save DC 14 — fail takes 1d8 fire. Use Careful Power (+1 FP) to protect allies in the area.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Saber Reflect</div><div class="power-sub">Innate · Reaction · Self · Atk +6</div></div>
+        <span class="power-tag pt-purple">Innate</span>
+        <span class="power-tag pt-blue">Universal</span>
+      </div>
+      <div class="power-note">When hit by a ranged attack — reflect it back. Roll +6 to hit. Your main defensive reaction when Force Shield is expended.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Saber Throw</div><div class="power-sub">Innate · Action · 30ft · Atk +6 · 1d8</div></div>
+        <span class="power-tag pt-purple">Innate</span>
+        <span class="power-tag pt-blue">Universal</span>
+      </div>
+      <div class="power-note">Hurl your lightblade — attack +6, 1d8 energy. Returns to hand. Your best ranged damage option when not casting leveled powers.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Force Whisper</div><div class="power-sub">Innate · Action · 120ft · No FP</div></div>
+        <span class="power-tag pt-purple">Innate</span>
+        <span class="power-tag pt-blue">Universal</span>
+      </div>
+      <div class="power-note">Send a silent telepathic message to any creature within 120ft. Essential for silent coordination mid-combat.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Spare the Dying</div><div class="power-sub">Innate · Action · Touch · No FP</div></div>
+        <span class="power-tag pt-purple">Innate</span>
+        <span class="power-tag pt-green">Light Side</span>
+      </div>
+      <div class="power-note">Stabilize a creature at 0 HP — no rolls, no FP cost. Use on downed allies immediately to prevent death saves spiraling.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Heal</div><div class="power-sub">1st Level · Action · Touch · 2 FP · 1d8+4</div></div>
+        <span class="power-tag pt-green">1st Level</span>
+        <span class="power-tag pt-green">Light Side</span>
+      </div>
+      <div class="power-note">Restore 1d8+4 HP + Disciple of Life bonus (+3) = up to 1d8+7 total. Primary healing tool. Costs 2 FP.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Telepathic Link</div><div class="power-sub">1st Level · Action · Touch · 2 FP</div></div>
+        <span class="power-tag pt-blue">1st Level</span>
+        <span class="power-tag pt-blue">Universal</span>
+      </div>
+      <div class="power-note">Establish a telepathic connection with one creature. Utility and coordination — best used outside combat or at start of a mission.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Dark Side Tendrils</div><div class="power-sub">1st Level · Action · Self (10ft) · STR 12 · 2d6 · 2 FP</div></div>
+        <span class="power-tag pt-red">1st Level</span>
+        <span class="power-tag pt-red">Dark Side</span>
+      </div>
+      <div class="power-note">Dark side tendrils erupt in a 10ft emanation around you. STR save DC 12 — fail: 2d6 damage and restrained until end of their next turn. Powerful area control but requires being in the middle of enemies. Use Careful Power to protect adjacent allies.</div>
+
+      <div class="power-row">
+        <div><div class="power-name">Stun Droid</div><div class="power-sub">2nd Level · Action · 60ft · CON 14 · 4 damage · 3 FP</div></div>
+        <span class="power-tag pt-blue">2nd Level</span>
+        <span class="power-tag pt-blue">Universal</span>
+      </div>
+      <div class="power-note">Target a droid — CON save DC 14 or take 4 damage and be stunned. Highly situational — devastating against droids, useless otherwise. Know when the campaign calls for it.</div>
+
+    </div>
+  </div>
+
+  <!-- COMBOS -->
+  <div class="card">
+    <div class="card-header"><span class="card-header-dot-red"></span>Turn Combos</div>
+
+    <div class="combo-block">
+      <div class="combo-title">// STANDARD TURN — Control + Pressure</div>
+      <div class="combo-steps">
+        <span class="combo-step">Action: Force Push/Pull (STR save DC 14)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Fail: enemy moved + 1d4 damage</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Bonus: Force Whisper to coordinate allies</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// IMBUED BLADE — Free WIS Melee Damage</div>
+      <div class="combo-steps">
+        <span class="combo-step">Bonus: Force Imbuement (free, no FP)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Lightblade now uses WIS +4 for atk + dmg</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Action: Attack at +6, damage 1d8+4</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Lasts 1 minute — no FP spent</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// IMBUED BLADE + SABER THROW — Range or Melee Same Setup</div>
+      <div class="combo-steps">
+        <span class="combo-step">Bonus: Force Imbuement (imbue blade)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Action: Saber Throw (+6, 1d8 energy, 30ft)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Blade returns to hand</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Imbue still active next turn</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// REPOSITION + IMBUED STRIKE — Leap In, Hit Hard</div>
+      <div class="combo-steps">
+        <span class="combo-step">Bonus: Force Leap (reposition up to range)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Action: Imbued Lightblade attack (+6, 1d8+4)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Note: BA already used — no Imbuement this turn</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Imbue on a prior turn for best results</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// SETUP + CONTROL — Disarm Then Press</div>
+      <div class="combo-steps">
+        <span class="combo-step">Action: Force Disarm (STR save DC 14)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Fail: enemy drops weapon</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Ally moves in — enemy unarmed and threatened</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Bonus: Force Whisper alert to the opening</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// SUPPORT TURN — Emergency Heal</div>
+      <div class="combo-steps">
+        <span class="combo-step">Ally at 0 HP: Action: Spare the Dying (no FP)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Stabilised — no death saves this turn</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Next turn: Heal (2 FP) → 1d8+7 HP restored</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// SAFE AoE — Pyrokinesis Without Friendly Fire</div>
+      <div class="combo-steps">
+        <span class="combo-step">Careful Power (1 FP) — up to 4 allies auto-succeed</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Action: Pyrokinesis (DEX save DC 14, 1d8 fire)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Enemies burn, allies untouched</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// DARK ZONE — Tendrils + Careful Power</div>
+      <div class="combo-steps">
+        <span class="combo-step">Move into cluster (Force Leap if needed)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Careful Power (1 FP, protect adjacent allies)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Action: Dark Side Tendrils (2d6, STR save, restrain)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Restrained enemies: disadvantage on attacks, can't move</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// DEFENSE CHAIN — Reflect + Shield</div>
+      <div class="combo-steps">
+        <span class="combo-step">Enemy fires ranged attack</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Reaction: Saber Reflect (+6) — redirect it back</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">If a second hit threatens: Force Shield (2/LR)</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">+2 AC — potentially flips the hit to a miss</span>
+      </div>
+    </div>
+
+    <div class="combo-block">
+      <div class="combo-title">// CLUTCH MISS — Seeking Power Safety Net</div>
+      <div class="combo-steps">
+        <span class="combo-step">Cast Saber Throw or leveled power</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Miss / target succeeds save</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Spend 1 FP: Seeking Power — reroll, take higher</span>
+        <span class="combo-arrow">→</span>
+        <span class="combo-step">Can stack with Careful Power on same cast</span>
+      </div>
+    </div>
+
+    <div class="fp-note">
+      Force Points (16) refresh on LONG rest · Force Recovery (1/LR) — use at ~4 FP remaining · Force Shield (2/LR) — save for hits that would drop you · Force Imbuement — FREE, no FP, lasts 1 minute, use it constantly · Disciple of Life — always adds +2+level to healing · BLINDSIGHT 30ft — cannot be blinded within range
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const toggle = document.getElementById('themeToggle');
+  const icon   = document.getElementById('toggleIcon');
+  const label  = document.getElementById('toggleLabel');
+  // Dark mode by default
+  const saved = localStorage.getItem('mairi-theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    icon.textContent  = '☀️';
+    label.textContent = 'Light';
+  }
+  toggle.addEventListener('click', () => {
+    const isLight = document.body.classList.toggle('light');
+    icon.textContent  = isLight ? '☀️' : '🌌';
+    label.textContent = isLight ? 'Light' : 'Dark';
+    localStorage.setItem('mairi-theme', isLight ? 'light' : 'dark');
+  });
+</script>
+</body>
+</html>
